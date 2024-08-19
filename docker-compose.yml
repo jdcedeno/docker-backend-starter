@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    container_name: mariadb_container
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-inintdb.d/init.sql
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    networks:
+      - mariadb_network
+
+  express-server:
+    build: .
+    container_name: express_server_container
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    networks:
+      - mariadb_network
+    depends_on:
+      - mariadb
+
+volumes:
+  mariadb_data:
+
+networks:
+  mariadb_network:
