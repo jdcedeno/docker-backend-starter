@@ -37,6 +37,16 @@ services:
     depends_on:
       - mariadb
 
+  client:
+    build: ./client
+    container_name: client_container
+    ports:
+      - "80:80"
+    networks:
+      - mariadb_network
+    depends_on:
+      - express-server
+
 volumes:
   mariadb_data:
 
