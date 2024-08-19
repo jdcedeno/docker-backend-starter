@@ -1,8 +1,11 @@
 import express from 'express'
+import cors from "cors"
 import mysql from 'mysql2'
 
 const app = express()
 const port = 3000
+
+app.use(cors())
 
 // Create a connection pool
 const pool = mysql.createPool({
