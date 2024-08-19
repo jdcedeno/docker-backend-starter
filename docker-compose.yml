@@ -21,7 +21,7 @@ services:
       - mariadb_network
 
   express-server:
-    build: .
+    build: ./server
     container_name: express_server_container
     environment:
       MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
