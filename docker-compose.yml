@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mariadb:
-    image: mariadb:latest
+    build: .
     restart: always
     container_name: mariadb_container
     environment:
@@ -12,36 +12,37 @@ services:
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
     volumes:
       - mariadb_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-inintdb.d/init.sql
     env_file:
       - .env
     ports:
-      - "3306:3306"
+      - "${DATABASE_PORT}:3306"
     networks:
       - mariadb_network
 
   express-server:
-    build: ./server
+    build:
+      context: ./server
+      args:
+        - DATABASE_URL=${DATABASE_URL}
     container_name: express_server_container
     environment:
-      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
-      MARIADB_DATABASE: ${MARIADB_DATABASE}
-      MARIADB_USER: ${MARIADB_USER}
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      DATABASE_URL: ${DATABASE_URL}
     env_file:
       - .env
     ports:
-      - "3000:3000"
+      - "${SERVER_PORT}:${SERVER_PORT}"
     networks:
       - mariadb_network
     depends_on:
       - mariadb
+    command: >
+      sh -c './wait-for-it.sh mariadb:3306 -- npx prisma migrate deploy && npx prisma db seed && npm start'
 
   client:
     build: ./client
     container_name: client_container
     ports:
-      - "80:80"
+      - "${CLIENT_PORT}:${CLIENT_PORT}"
     networks:
       - mariadb_network
     depends_on:

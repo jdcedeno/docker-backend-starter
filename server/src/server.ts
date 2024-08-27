@@ -1,34 +1,45 @@
 import express from 'express'
 import cors from "cors"
-import mysql from 'mysql2'
-
+import { PrismaClient } from "@prisma/client"
 const app = express()
-const port = 3000
+const prisma = new PrismaClient()
+const port = process.env.SERVER_PORT
 
 app.use(cors())
 
-// Create a connection pool
-const pool = mysql.createPool({
-  host: 'mariadb',
-  user: process.env.MARIADB_USER,
-  password: process.env.MARIADB_PASSWORD,
-  database: process.env.MARIADB_DATABASE,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-})
-
-app.get('/', (req, res) => {
-  // Get a connection from the pool and execute a query
-  pool.query('SELECT 1 + 1 AS solution', (error, results) => {
-    if (error) {
-      console.error('Error during query:', error.stack)
-      res.status(500).send('Error during query.')
-      return
-    }
-    console.log(results)
-    res.send(`The solution is: ${(results as any)[0] as any}`)
+const test = async () => {
+  console.log("creating user: ")
+  let user = await prisma.user.upsert({
+    where: {
+      id: 1
+    },
+    update: {
+      name: "test user1"
+    },
+    create: {
+      id: 1,
+      email: "testuser@email.com",
+      name: "test user",
+    },
   })
+  console.log(user)
+
+  console.log("findmany users")
+  let logThis = await prisma.user.findMany()
+  console.log(logThis)
+}
+
+app.get('/', async (req, res) => {
+  try {
+    console.log("starting test...")
+    await test()
+    console.log("test completed...")
+    res.status(200).send("test completed...")
+  } catch (error) {
+    console.log("error")
+    console.log(error)
+    res.status(500).send("error")
+  }
 })
 
 app.listen(port, () => {

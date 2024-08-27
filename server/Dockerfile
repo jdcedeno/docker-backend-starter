@@ -10,23 +10,24 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
+# Install MySQL client
+RUN apk add mysql-client --no-cache
+
+# Copy the wait-for-it.sh script
+COPY wait-for-it.sh /usr/local/bin/wait-for-it.sh
+RUN chmod +x /usr/local/bin/wait-for-it.sh
+
 # Copy the rest of the application code
 COPY . .
 
 # Build the TypeScript code
-RUN npm run build
-
-# Stage 2: Run the app and connect to database by providing environment variables
-# FROM node:20-alpine
-
-# WORKDIR /app
-
-# COPY --from=build /app/node_modules ./node_modules
-# COPY --from=build /app/dist ./dist
-# COPY --from=build /app/.env .env
+RUN npx prisma generate && npm run build
 
 # Expose the port the app runs on
 EXPOSE 3000
 
-# Command to run the app
-CMD ["npm", "start"]
+# Command to run the app, and seed script
+# CMD sh -c "npx prisma migrate deploy && npx prisma generate && npx prisma db seed && npm start"
+
+# CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "./wait-for-it.sh mariadb:3306 -- npx prisma migrate deploy && npx prisma db seed && npm start"]
