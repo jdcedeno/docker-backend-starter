@@ -30,4 +30,4 @@ EXPOSE 3000
 # CMD sh -c "npx prisma migrate deploy && npx prisma generate && npx prisma db seed && npm start"
 
 # CMD ["npm", "run", "start"]
-CMD ["sh", "-c", "./wait-for-it.sh mariadb:3306 -- npx prisma migrate deploy && npx prisma db seed && npm start"]
+# CMD ["sh", "-c", "./wait-for-it.sh mariadb:3306 -- npx prisma migrate deploy && npx prisma db seed && npm start"]
